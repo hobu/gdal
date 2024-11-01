@@ -34,7 +34,7 @@ jobs:
     - name: Checkout GDAL
       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - name: Setup cache
-      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
       id: cache
       with:
           path: ${{ github.workspace }}/.ccache
@@ -327,7 +327,7 @@ jobs:
             mingw-w64-x86_64-libgeotiff mingw-w64-x86_64-libpng mingw-w64-x86_64-libtiff mingw-w64-x86_64-openjpeg2
             mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-numpy mingw-w64-x86_64-python-pytest mingw-w64-x86_64-python-setuptools mingw-w64-x86_64-python-lxml mingw-w64-x86_64-swig mingw-w64-x86_64-python-psutil mingw-w64-x86_64-blosc
       - name: Setup cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
         id: cache
         with:
           path: ${{ github.workspace }}\.ccache
@@ -586,7 +586,7 @@ jobs:
     - name: Checkout GDAL
       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - name: Setup cache
-      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
       id: cache
       with:
           path: ${{ github.workspace }}/.ccache
