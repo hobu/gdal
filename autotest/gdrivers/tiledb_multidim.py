@@ -730,8 +730,11 @@ def test_tiledb_multidim_array_read_gdal_raster_classic_interleave_attributes():
         ),
         ds = gdal.Open(filename, gdal.OF_MULTIDIM_RASTER)
         rg = ds.GetRootGroup()
+        # Multi-attribute TileDB arrays expose fixed-size attributes under
+        # their schema names.  The old filename-prefixed synthetic names made
+        # a named scalar metric inaccessible through the MDIM API.
         assert rg.GetMDArrayNames() == [
-            filename[len("tmp/") :] + ".TDB_VALUES_%d" % i for i in range(1, 3 + 1)
+            "TDB_VALUES_%d" % i for i in range(1, 3 + 1)
         ]
         ar = rg.OpenMDArray(rg.GetMDArrayNames()[0])
         dims = ar.GetDimensions()
