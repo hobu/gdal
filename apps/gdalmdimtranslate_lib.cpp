@@ -882,8 +882,7 @@ static bool TranslateArray(
         // name is below an array, rather than below a group. Such an array
         // cannot be reopened from the root group. Use the supplied live
         // object directly in that case.
-        if (poSrcArrayIn &&
-            poSrcArrayIn->GetFullName() == srcArrayName)
+        if (poSrcArrayIn && poSrcArrayIn->GetFullName() == srcArrayName)
         {
             bSrcArrayAccessibleThroughSrcGroup = false;
             srcArray = poSrcArrayIn;

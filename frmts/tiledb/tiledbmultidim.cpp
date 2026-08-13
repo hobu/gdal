@@ -59,8 +59,10 @@ std::shared_ptr<GDALGroup> TileDBArrayGroup::Create(
             // arrays.
             if (attr.variable_sized())
             {
-                CPLDebug("TileDB", "Skipping unsupported variable-size "
-                                  "attribute '%s'", attr.name().c_str());
+                CPLDebug("TileDB",
+                         "Skipping unsupported variable-size "
+                         "attribute '%s'",
+                         attr.name().c_str());
                 continue;
             }
             auto poArray = TileDBArray::OpenFromDisk(
