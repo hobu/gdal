@@ -49,10 +49,23 @@ std::shared_ptr<GDALGroup> TileDBArrayGroup::Create(
     {
         for (uint32_t i = 0; i < nAttributes; ++i)
         {
+            const auto &attr = schema.attribute(i);
+            // A TileDB array can mix fixed-size raster attributes with
+            // variable-size attributes.  The latter have no GDAL MD array
+            // representation, but must not make all of the scalar
+            // attributes inaccessible.  This is notably useful for a
+            // Silvimetric array: point-value attributes are variable-sized,
+            // whereas the output metrics are ordinary two-dimensional scalar
+            // arrays.
+            if (attr.variable_sized())
+            {
+                CPLDebug("TileDB", "Skipping unsupported variable-size "
+                                  "attribute '%s'", attr.name().c_str());
+                continue;
+            }
             auto poArray = TileDBArray::OpenFromDisk(
-                poSharedResource, nullptr, "/",
-                osBaseName + "." + schema.attribute(i).name(),
-                schema.attribute(i).name(), osArrayPath, nullptr);
+                poSharedResource, nullptr, "/", attr.name(), attr.name(),
+                osArrayPath, nullptr);
             if (!poArray)
                 return nullptr;
             apoArrays.emplace_back(poArray);

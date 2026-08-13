@@ -392,7 +392,13 @@ std::shared_ptr<TileDBArray> TileDBArray::OpenFromDisk(
             const void *value = nullptr;
             poTileDBArray->get_metadata(GDAL_ATTRIBUTE_NAME, &value_type,
                                         &value_num, &value);
-            if (value && value_num && value_type == TILEDB_UINT8 &&
+            // Both the TileDB raster driver and applications using TileDB-Py
+            // persist the GDAL PAM document as string metadata.  Older GDAL
+            // writers used UINT8 metadata, so accept both forms here.
+            if (value && value_num &&
+                (value_type == TILEDB_UINT8 ||
+                 value_type == TILEDB_STRING_ASCII ||
+                 value_type == TILEDB_STRING_UTF8) &&
                 CPLIsUTF8(static_cast<const char *>(value), value_num))
             {
                 std::string osXML;
