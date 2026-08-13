@@ -245,6 +245,14 @@ def test_tiledb_multidim_mixed_fixed_and_variable_sized_attributes(tmp_path):
     mean = root_group.OpenMDArray("m_Z_mean")
     assert mean.GetDimensionsSize() == [2, 3]
 
+    output = str(tmp_path / "m_Z_mean.tif")
+    assert gdal.MultiDimTranslate(
+        output, filename, format="GTiff", arraySpecs=["m_Z_mean"]
+    )
+    output_ds = gdal.Open(output)
+    assert output_ds.RasterXSize == 3
+    assert output_ds.RasterYSize == 2
+
 
 ###############################################################################
 

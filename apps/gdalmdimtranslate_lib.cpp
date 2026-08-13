@@ -879,7 +879,23 @@ static bool TranslateArray(
     if (poSrcRootGroup && poSrcGroup)
     {
         if (!srcArrayName.empty() && srcArrayName[0] == '/')
-            srcArray = poSrcRootGroup->OpenMDArrayFromFullname(srcArrayName);
+        {
+            // A driver can provide an in-memory indexing variable whose full
+            // name is below an array, rather than below a group. Such an
+            // array cannot be reopened from the root group, but the caller
+            // has already supplied the live object in poSrcArrayIn.
+            if (poSrcArrayIn && poSrcArrayIn->GetFullName() == arraySpec)
+            {
+                CPLErrorStateBackuper oErrorStateBackuper(CPLQuietErrorHandler);
+                srcArray =
+                    poSrcRootGroup->OpenMDArrayFromFullname(srcArrayName);
+            }
+            else
+            {
+                srcArray =
+                    poSrcRootGroup->OpenMDArrayFromFullname(srcArrayName);
+            }
+        }
         else
             srcArray = poSrcGroup->OpenMDArray(srcArrayName);
         if (!srcArray)
