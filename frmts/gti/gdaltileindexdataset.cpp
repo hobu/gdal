@@ -3930,17 +3930,21 @@ bool GDALTileIndexDataset::GetSourceDesc(const std::string &osTileName,
                                          const int *panBandMap)
 {
 
-    if (pMutex)
-        pMutex->lock();
     std::shared_ptr<SharedDataset> sharedDS;
     GTISharedSourceKey key;
     key.osTileName = osTileName;
     if (m_bBandInterleave)
         key.anBands.insert(key.anBands.end(), panBandMap,
                            panBandMap + nBandCount);
-    m_oMapSharedSources.tryGet(key, sharedDS);
     if (pMutex)
-        pMutex->unlock();
+    {
+        std::lock_guard<std::mutex> oLock(*pMutex);
+        m_oMapSharedSources.tryGet(key, sharedDS);
+    }
+    else
+    {
+        m_oMapSharedSources.tryGet(key, sharedDS);
+    }
 
     std::shared_ptr<GDALDataset> poTileDS;
     GDALDataset *poUnreprojectedDS = nullptr;
@@ -4146,10 +4150,14 @@ bool GDALTileIndexDataset::GetSourceDesc(const std::string &osTileName,
         sharedDS->bBandMapTakenIntoAccount = bBandMapTakenIntoAccount;
 
         if (pMutex)
-            pMutex->lock();
-        m_oMapSharedSources.insert(key, sharedDS);
-        if (pMutex)
-            pMutex->unlock();
+        {
+            std::lock_guard<std::mutex> oLock(*pMutex);
+            m_oMapSharedSources.insert(key, sharedDS);
+        }
+        else
+        {
+            m_oMapSharedSources.insert(key, sharedDS);
+        }
     }
 
     GDALGeoTransform gtTile;
