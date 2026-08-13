@@ -878,26 +878,40 @@ static bool TranslateArray(
     bool bSrcArrayAccessibleThroughSrcGroup = true;
     if (poSrcRootGroup && poSrcGroup)
     {
-        // A driver can provide an in-memory indexing variable whose full
-        // name is below an array, rather than below a group. Such an array
-        // cannot be reopened from the root group. Use the supplied live
-        // object directly in that case.
-        if (poSrcArrayIn && poSrcArrayIn->GetFullName() == srcArrayName)
+        if (!srcArrayName.empty() && srcArrayName[0] == '/')
         {
-            bSrcArrayAccessibleThroughSrcGroup = false;
-            srcArray = poSrcArrayIn;
-        }
-        else if (!srcArrayName.empty() && srcArrayName[0] == '/')
-        {
-            srcArray = poSrcRootGroup->OpenMDArrayFromFullname(srcArrayName);
+            // A driver can provide an in-memory indexing variable whose full
+            // name is below an array, rather than below a group. Try the
+            // normal reopen first; only silence the expected failure when we
+            // can fall back to the supplied live object below.
+            if (poSrcArrayIn &&
+                poSrcArrayIn->GetFullName() == srcArrayName)
+            {
+                CPLErrorStateBackuper oErrorStateBackuper(CPLQuietErrorHandler);
+                srcArray =
+                    poSrcRootGroup->OpenMDArrayFromFullname(srcArrayName);
+            }
+            else
+            {
+                srcArray =
+                    poSrcRootGroup->OpenMDArrayFromFullname(srcArrayName);
+            }
         }
         else
             srcArray = poSrcGroup->OpenMDArray(srcArrayName);
         if (!srcArray)
         {
-            CPLError(CE_Failure, CPLE_AppDefined, "Cannot find array %s",
-                     srcArrayName.c_str());
-            return false;
+            if (poSrcArrayIn && poSrcArrayIn->GetFullName() == srcArrayName)
+            {
+                bSrcArrayAccessibleThroughSrcGroup = false;
+                srcArray = poSrcArrayIn;
+            }
+            else
+            {
+                CPLError(CE_Failure, CPLE_AppDefined, "Cannot find array %s",
+                         srcArrayName.c_str());
+                return false;
+            }
         }
     }
     else if (band < 0)
