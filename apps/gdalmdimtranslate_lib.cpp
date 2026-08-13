@@ -19,6 +19,7 @@
 #include "vrtdataset.h"
 #include <algorithm>
 #include <map>
+#include <optional>
 #include <set>
 
 /************************************************************************/
@@ -878,30 +879,25 @@ static bool TranslateArray(
     bool bSrcArrayAccessibleThroughSrcGroup = true;
     if (poSrcRootGroup && poSrcGroup)
     {
+        const bool bCanUseSuppliedArray =
+            poSrcArrayIn && poSrcArrayIn->GetFullName() == srcArrayName;
+        std::optional<CPLErrorStateBackuper> oErrorStateBackuper;
         if (!srcArrayName.empty() && srcArrayName[0] == '/')
         {
             // A driver can provide an in-memory indexing variable whose full
-            // name is below an array, rather than below a group. Try the
-            // normal reopen first; only silence the expected failure when we
-            // can fall back to the supplied live object below.
-            if (poSrcArrayIn &&
-                poSrcArrayIn->GetFullName() == srcArrayName)
-            {
-                CPLErrorStateBackuper oErrorStateBackuper(CPLQuietErrorHandler);
-                srcArray =
-                    poSrcRootGroup->OpenMDArrayFromFullname(srcArrayName);
-            }
-            else
-            {
-                srcArray =
-                    poSrcRootGroup->OpenMDArrayFromFullname(srcArrayName);
-            }
+            // name is below an array, rather than below a group. Suppress the
+            // expected failed group lookup only when the caller supplied the
+            // live array to use as a fallback.
+            if (bCanUseSuppliedArray)
+                oErrorStateBackuper.emplace(CPLQuietErrorHandler);
+            srcArray = poSrcRootGroup->OpenMDArrayFromFullname(srcArrayName);
         }
         else
             srcArray = poSrcGroup->OpenMDArray(srcArrayName);
+        oErrorStateBackuper.reset();
         if (!srcArray)
         {
-            if (poSrcArrayIn && poSrcArrayIn->GetFullName() == srcArrayName)
+            if (bCanUseSuppliedArray)
             {
                 bSrcArrayAccessibleThroughSrcGroup = false;
                 srcArray = poSrcArrayIn;
